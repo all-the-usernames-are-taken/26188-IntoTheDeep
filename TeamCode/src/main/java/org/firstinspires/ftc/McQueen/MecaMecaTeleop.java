@@ -171,6 +171,20 @@ public class MecaMecaTeleop extends LinearOpMode {
             else {
                 claw.setPosition(maxClaw);
             }
+
+            // Show the elapsed game time and wheel power.
+            telemetry.addData("Status", "Run Time: " + runtime.toString());
+            //telemetry.addData("Motors", "left (%.f0), right (%.f0)",
+            //    (double)(leftDrive.getCurrentPosition()), (double)(rightDrive.getCurrentPosition()));
+            telemetry.addData("Front Left Motor", frontLeft.getCurrentPosition());
+            telemetry.addData("Front Right Motor", frontRight.getCurrentPosition());
+            telemetry.addData("Back Left Motor", backLeft.getCurrentPosition());
+            telemetry.addData("Back Right Motor", backRight.getCurrentPosition());
+            telemetry.addData(" ", " "); // Arms
+            telemetry.addData("Arm lift", armLift.getCurrentPosition());
+            telemetry.addData("Arm extension", armExtend.getCurrentPosition());
+            telemetry.addData("Claw position", "%.2f", claw.getPosition());
+            telemetry.update();
         } // End of opModeIsActive()
 
 
