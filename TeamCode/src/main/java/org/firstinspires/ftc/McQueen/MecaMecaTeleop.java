@@ -70,7 +70,7 @@ public class MecaMecaTeleop extends LinearOpMode {
     public Servo claw = null;
     public Servo rotate = null;
     public Servo wrist = null;
-    public Servo yaw = null;
+    public Servo elbow = null;
     public Servo upperWrist = null;
 
     // Calculate the COUNTS_PER_INCH for your specific drive train.
@@ -109,7 +109,7 @@ public class MecaMecaTeleop extends LinearOpMode {
         claw = hardwareMap.get(Servo.class, "claw");
         rotate = hardwareMap.get(Servo.class, "rotate");
         wrist = hardwareMap.get(Servo.class, "wrist");
-        yaw = hardwareMap.get(Servo.class, "elbow");
+        elbow = hardwareMap.get(Servo.class, "elbow");
         upperWrist = hardwareMap.get(Servo.class, "upperWrist");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
@@ -185,7 +185,7 @@ public class MecaMecaTeleop extends LinearOpMode {
             // Servos (may not be accurate) (why do we have 5 servos for the claw? we need at least 3!!!)
             telemetry.addData("Claw position", "%.2f", claw.getPosition());
             telemetry.addData("Rotation", "%.2f", rotate.getPosition());
-            telemetry.addData("Yaw", "%.2f", yaw.getPosition());
+            telemetry.addData("Elbow position", "%.2f", elbow.getPosition());
             telemetry.addData("Wrist position", "%.2f", wrist.getPosition());
             telemetry.addData("Upper wrist position", "%.2f", upperWrist.getPosition());
             telemetry.update();
