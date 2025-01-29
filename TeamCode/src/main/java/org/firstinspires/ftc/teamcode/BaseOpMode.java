@@ -133,6 +133,7 @@ public class BaseOpMode extends LinearOpMode {
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
         backRight  = hardwareMap.get(DcMotor.class, "backRight");
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
+
         armLift = hardwareMap.get(DcMotor.class, "armLift"); // Arm joint?
         armExtend = hardwareMap.get(DcMotor.class, "armExtend");
         elbow = hardwareMap.get(DcMotor.class, "elbow");
@@ -166,7 +167,8 @@ public class BaseOpMode extends LinearOpMode {
         elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         armExtend.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
+        armLift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        elbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
     } // End of initialize()
 

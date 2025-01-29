@@ -49,7 +49,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp(name="Robot: MecaMeca", group="Robot")
 
-public class MecaMecaConfigFile extends OpMode {
+public class config_mcqueen extends OpMode {
 
     /* Declare OpMode members. */
     public DcMotor  frontLeft  = null;
