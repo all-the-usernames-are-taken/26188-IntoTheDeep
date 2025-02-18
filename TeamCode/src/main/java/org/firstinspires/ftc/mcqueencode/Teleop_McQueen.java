@@ -29,7 +29,13 @@
 
 package org.firstinspires.ftc.mcqueencode;
 
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.mcqueencode.BaseOpMode;
 
 /*
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -60,6 +66,9 @@ public class Teleop_McQueen extends BaseOpMode {
 		// end of setup
 
 		boolean wasAPressed = false;
+		boolean wasYPrsed = false;
+		boolean wasLBpressed = false;
+		boolean wasRBpressed = false;
 		boolean clawIsOpen = false; //todo: check if claw is open at the start
 
 		int shoulderHalfway = 650; // Above this limit the wrist can go straight without breaking the size limit.
@@ -68,14 +77,38 @@ public class Teleop_McQueen extends BaseOpMode {
 		// run until the end of the match (driver presses STOP)
 		while (opModeIsActive()) {
 
-/*
-###################
+			
+//NEW CONTROLS CODE  - CEP
 
+/*
+########################################
+ 		GAMEPAD 1 - Driver Control
+########################################
+#
+# DPAD UP 		- 	 
+# DPAD DOWN 	- 
+# DPAD LEFT 	- 	
+# DPAD RIGHT 	- 
+#
+# LEFT STICK Y	- Forward / Reverse
+# LEFT STICK X	- Left / Right
+#
+# RIGHT STICK Y -
+# RIGHT STICK X - Turn Left / Right
+#
+# A				-
+# B				-
+# Y				-
+# X				-
+#
+# L Bumper 		-
+# R Bumper 		-
+#
+# L Trigger		-
+# R Trigger		-
+#
+########################################
 */
-			/* Idea:
-			   Make RB a shift button so we can cram more controls on the robot
-			   Consider putting macros on RB?
-			 */
 			double horizontal = -gamepad1.left_stick_y; // L-stick up/down - Remember, Y stick value is reversed
 			double vertical = gamepad1.left_stick_x * 1.1; // L-stick left/right - Counteract imperfect strafing (by multiplying by 1.1)
 			double turn = gamepad1.right_stick_x; // R-stick left/right
@@ -95,14 +128,174 @@ public class Teleop_McQueen extends BaseOpMode {
 			frontRight.setPower(frontRightPower);
 			backRight.setPower(backRightPower);
 
-			// A [1]
+/*
+#################### TODO
+# Key binds for [1]:
+# [DPAD UP] - raise shoulder	 /\
+# [DPAD DOWN] - lower shoulder <   >
+# [DPAD LEFT] - extend arm		\/
+# [DPAD RIGHT - detract arm
+# 
+####################
+
+		Idea:
+			   Make RB a shift button so we can cram more controls on the robot
+			   Consider putting macros on RB?
+			
+			double horizontal = -gamepad1.left_stick_y; // L-stick up/down - Remember, Y stick value is reversed
+			double vertical = gamepad1.left_stick_x * 1.1; // L-stick left/right - Counteract imperfect strafing (by multiplying by 1.1)
+			double turn = gamepad1.right_stick_x; // R-stick left/right
+
+			// Denominator is the largest motor power (absolute value) or 1
+			// This ensures all the powers maintain the same ratio,
+			// but only if at least one is out of the range [-1, 1]
+			double denominator = Math.max(Math.abs(horizontal) + Math.abs(vertical) + Math.abs(turn), 1);
+			// Denominator
+			double frontLeftPower = (horizontal + vertical + turn) / denominator;
+			double backLeftPower = (horizontal - vertical + turn) / denominator;
+			double frontRightPower = (horizontal - vertical - turn) / denominator;
+			double backRightPower = (horizontal + vertical - turn) / denominator;
+
+			frontLeft.setPower(frontLeftPower);
+			backLeft.setPower(backLeftPower);
+			frontRight.setPower(frontRightPower);
+			backRight.setPower(backRightPower);
+
+*/
+/*
+########################################
+ 		GAMEPAD 2 - ARM CONTROLS
+########################################
+#
+# DPAD UP 		- raise arm	 
+# DPAD DOWN 	- lower arm
+# DPAD LEFT 	- extend arm	
+# DPAD RIGHT 	- retract arm
+# 
+# A				-
+# B				-
+# Y				-
+# X				-
+#
+# L Bumper 		-
+# R Bumper 		-
+#
+# L Trigger		-
+# R Trigger		-
+#
+########################################
+*/
+	// EXTEND ARM
+		if (gamepad2.dpad_left && armExtend.getCurrentPosition() < maxArm) {
+			armExtend.setPower(armSpeed);
+	// SOFTWARE LIMITER p1 - automatically lower the wrist
+		if (armLift.getCurrentPosition() < shoulderHalfway) {
+			wrist.setPosition(minWristL);
+						}
+			}
+	// RETRACT ARM
+		else if (gamepad2.dpad_right && armExtend.getCurrentPosition() > minArm) { 
+			armExtend.setPower(-armSpeed);
+			}
+		else {
+			armExtend.setPower(0);
+			}
+		
+	// RAISE ARM
+		if (gamepad2.dpad_up && armLift.getCurrentPosition() < maxShoulder) {
+			armLift.setPower(shoulderSpeed);
+			}
+	// LOWER ARM
+		else if (gamepad2.dpad_down && armLift.getCurrentPosition() > minShoulder) { 
+			armLift.setPower(-shoulderSpeed);
+			}
+		else {
+			armLift.setPower(0);
+			}
+			
+	// CLAW OPEN
+		if (gamepad2.right_trigger > 0.5 && clawIsOpen) {
+			claw.setPosition(minClaw); // Sets the claw to the closed position.
+			clawIsOpen = false; 
+			}
+
+	// CLAW CLOSE
+		if (gamepad2.left_trigger > 0.5 && !clawIsOpen) {
+			claw.setPosition(maxClaw); // Sets the claw to the open position.
+			clawIsOpen = true; 
+			}
+			
+	// WRIST
+		if (wrist.getPosition() < minWristL && wrist.getPosition() > maxWristL) {
+			wrist.setPosition(wrist.getPosition() + gamepad2.left_stick_y);
+			}
+			
+	// ELBOW		
+		if (gamepad2.left_bumper && elbow.getCurrentPosition() > 0) {
+			elbow.setPower(-ELBOW_SPEED);
+			}
+			
+		if (gamepad2.right_bumper && elbow.getCurrentPosition() < maxElbow) {
+			elbow.setPower(ELBOW_SPEED);
+			}
+
+		// macro for claw
+		if (gamepad2.b) {
+			armLift.setTargetPosition(0); // reset elbow/wrist/armLift to 0
+			elbow.setTargetPosition(0);
+			armLift.setTargetPosition(0);
+
+			claw.setPosition(minClaw); // open claw in case
+			armExtend.setTargetPosition(1121 - armExtend.getCurrentPosition()); // arm extend goes to 1121
+			wrist.setPosition(wristDefault); // this is assuming that wristDefault is in the middle
+		}
+		else if (!gamepad2.b) { // activates the MOMENT the driver lets go of B (please note)
+			claw.setPosition(maxClaw); // close it!
+			armExtend.setTargetPosition(0); // note: i suspect that you need to move the wrist sideways to prevent hitting the side of the sub
+		}
+
+		// hanging a specimen macro
+		if (gamepad2.x) {
+			armLift.setTargetPosition(1075); // Set armLift to up/down
+			armLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+			armLift.setPower(0.8);
+
+			armLift.setTargetPosition(1200);
+			armLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+			armLift.setPower(0.3); // slow it down a bit
+
+			armExtend.setTargetPosition(900); // TODO: 900 IS A PLACEHOLDER VALUE! PLEASE GET THE VALUE FOR THE HIGH BAR LATER!
+			elbow.setTargetPosition(72);
+			wrist.setPosition(0.25); // lower wrist TODO: SAME WITH THIS
+		}
+				
+	// ROTATE
+	//	if (rotate.getPosition() < minRotateL && rotate.getPosition() > maxRotateL) {
+	//		rotate.setPosition(rotate.getPosition() + gamepad2.right_stick_y);
+	//		}
+			
+	// ROTATE LEFT
+	//	if (gamepad2.right_stick_x && rotate.getPosition() > minRotate) {
+	//		rotate.setPosition(-ROTATE_SPEED + rotate.getPosition());
+	//		}
+	//		
+	// ROTATE RIGHT
+	//	if (gamepad2.right_stick_x && rotate.getPosition() < maxRotate) {
+	//		rotate.setPosition(ROTATE_SPEED + rotate.getPosition());
+	//		}
+// END Controler Configuration.	
+
+
+/*
+			// A [1] - Opens/closes claw
 			if (gamepad1.a && !wasAPressed) {
 				if (clawIsOpen) {
-					claw.setPosition(minClaw);
-					clawIsOpen = false;
+					claw.setPosition(minClaw); // Sets the claw to the closed position.
+												// This way, we don't have to slide a value for the claw!
+					clawIsOpen = false; // hate how these are the opposite ;_;
 				}
 				else {
-					claw.setPosition(maxClaw);
+					claw.setPosition(maxClaw); // Sets the claw to the open position.
 					clawIsOpen = true;
 				}
 			}
@@ -162,7 +355,64 @@ public class Teleop_McQueen extends BaseOpMode {
 			else {
 				elbow.setPower(0);
 			}
-
+			
+			//*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*\\
+			
+			// Closes claw - RB [2]
+			if (gamepad2.right_trigger > 0.5 && clawIsOpen) {
+					claw.setPosition(minClaw); // Sets the claw to the closed position.
+												// This way, we don't have to slide a value for the claw!
+					clawIsOpen = false; // hate how these are the opposite ;_;
+			}
+			
+			// Opens claw - LB [2]
+			if (gamepad2.left_trigger > 0.5 && !clawIsOpen) {
+					claw.setPosition(maxClaw); // Sets the claw to the open position.
+												// This way, we don't have to slide a value for the claw!
+					clawIsOpen = true; // hate how these are the opposite ;_;
+			}
+			
+			// move wrist up/down - left stick y axis [2]
+			
+			if (wrist.getPosition() < minWristL && wrist.getPosition() > maxWristL) {
+			wrist.setPosition(wrist.getPosition() + gamepad2.left_stick_y);
+			}
+			
+			// moves elbow left - LB [2]
+			
+			if (gamepad2.left_bumper && elbow.getCurrentPosition() > 0) {
+				elbow.setPower(ELBOW_SPEED);
+			}
+			
+			if (gamepad2.right_bumper && elbow.getCurrentPosition() < maxElbow) {
+				elbow.setPower(-ELBOW_SPEED);
+			}
+			
+			// Y [2] - Opens/closes claw
+			if (gamepad2.y && !wasAPressed) {
+				if (clawIsOpen) {
+					claw.setPosition(minClaw); // Sets the claw to the closed position.
+												// This way, we don't have to slide a value for the claw!
+					clawIsOpen = false; // hate how these are the opposite ;_;
+				}
+				else {
+					claw.setPosition(maxClaw); // Sets the claw to the open position.
+					clawIsOpen = true;
+				}
+			}
+			
+			// DPAD LEFT [2] - rotate to the left
+			if (gamepad2.dpad_left && rotate.getPosition() > minRotate) {
+				rotate.setPosition(-ROTATE_SPEED + rotate.getPosition());
+			}
+			
+			// DPAD RIGHT [2] - rotate to the left
+			if (gamepad2.dpad_right && rotate.getPosition() < maxRotate) {
+				rotate.setPosition(ROTATE_SPEED + rotate.getPosition());
+			}
+			
+			//*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*[2]*\\
+*/			
 			// Show the elapsed game time and wheel power.
 			telemetry.addData("Status", "Run Time: " + runtime.toString());
 			//telemetry.addData("Motors", "left (%.f0), right (%.f0)",

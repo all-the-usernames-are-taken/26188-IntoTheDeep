@@ -1,13 +1,20 @@
 package org.firstinspires.ftc.mcqueencode;
 
+import static org.firstinspires.ftc.onbotjava.OnBotJavaManager.initialize;
+import com.qualcomm.robotcore.hardware.CRServo;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.mcqueencode.BaseOpMode;
 
 //***********************************
 @Autonomous
 //***********************************
 
-public class Auto_McQueen extends BaseOpMode {
+public class Basket_AUTO_McQueen extends BaseOpMode {
 
 	// VARIABLES EXCLUSIVE TO AUTONOMOUS
 	boolean anyMotorRunning;
@@ -142,17 +149,66 @@ public class Auto_McQueen extends BaseOpMode {
 //*NOTE - Driving code and arm code is all seperated by a enter space
 // todo: non-blocking first, THEN functions
 
-	tele("driving forward", 2000);
-	driveForward(-10, 0.5);
-	tele("strafe left", 2000);
-	strafeLeft(-5, 1);
+		driveForward(10, 0.5);	   //Drive forward
+		turnRight (48, 0.5);		//Turn right 45 degees
+		strafeLeft(12, 1);
+		
+//		armLift(1300, 0.25);		//Lift arm to max
+		tele("moving armLift", 0);
+		armLift.setTargetPosition(1075);					
+		armLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		armLift.setPower(0.8);
+		
+		tele("moving armLift", 0);
+		armLift.setTargetPosition(1200);					
+		armLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		armLift.setPower(0.3);
 	
-	tele("moving armLift", 0);
-	armLift.setTargetPosition(1075);					//Arm lifts while driving
-	armLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-	armLift.setPower(0.4);
+		sleep(2000);
 	
-	strafeLeft(-5, 1);
+//		moveArmExtend(1950, 0.8);   //Extend arm all the way
+		tele("moving extend", 0);
+		armExtend.setTargetPosition(1900);				
+		armExtend.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		armExtend.setPower(1);
+
+		sleep(2500);
+		
+//		elbow(68, 0.5);			 //Elbow striaght up
+		tele("moving elbow", 0);
+		elbow.setTargetPosition(38);					//Arm lifts while driving
+		elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		elbow.setPower(0.4);
+		
+		sleep(2500);
+		
+		wrist.setPosition(1);
+		
+		driveForward(3, 0.5);		//drive backward
+		claw.setPosition(minClaw);	//drop sample
+
+		tele("driving forward", 2000);
+		driveForward(-10, 0.5);
+		tele("strafe left", 2000);
+		strafeLeft(-5, 1);
+
+		tele("moving armLift", 0);
+		armLift.setTargetPosition(1075); //Arm lifts while driving
+		armLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		armLift.setPower(0.4);
+
+		strafeLeft(-5, 1);
+		tele("driving forward", 2000);
+		driveForward(-10, 0.5);
+		tele("strafe left", 2000);
+		strafeLeft(-5, 1);
+	
+		tele("moving armLift", 0);
+		armLift.setTargetPosition(1075);					//Arm lifts while driving
+		armLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		armLift.setPower(0.4);
+	
+		strafeLeft(-5, 1);
 	
 	
 //	elbow.setTargetPosition(60);						//Prepare to clip
@@ -161,14 +217,15 @@ public class Auto_McQueen extends BaseOpMode {
 	
 //	wrist.setPosition(wristDefault);					//Clip Specimen
 //	rotate.setPosition(20);
-	
+	/*	
 	sleep(500);
 	
 	tele("driving diagonally to sub", 2000);
 	driveForwardDiagonalLeft(-42, 0.5);		
 	tele("driving diagonally away from sub", 2000);
-	driveForwardDiagonalLeft(15, 0.5);					//Back away for sub
-	/*
+	driveForwardDiagonalLeft(15, 0.5);	
+	//Back away for sub
+
 	armLift.setTargetPosition(50);						//Arm lowers while driving
 	armLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 	armLift.setPower(0.25);
@@ -181,7 +238,7 @@ public class Auto_McQueen extends BaseOpMode {
 	driveForward(-45, 0.5);								//Go back for sample #2
 	strafeLeft(16, 0.5);								//Get behind sample #2
 	driveForward(38, 0.5);								//Go to obervation zone
-	*/
+
 //	elbow.setTargetPosition(60);						//Ready to pick specimen off wall
 //	elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 //	elbow.setPower(0.5);
@@ -189,7 +246,7 @@ public class Auto_McQueen extends BaseOpMode {
 //	wrist.setPosition(wristDefault);					//Ready to pick specimen off wall
 //	rotate.setPosition(40);
 	
-//*Open and close of claw needed
+Open and close of claw needed
 	
 	sleep(1500);
 	

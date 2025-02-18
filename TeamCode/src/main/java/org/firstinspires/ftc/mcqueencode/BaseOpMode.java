@@ -30,7 +30,9 @@
 package org.firstinspires.ftc.mcqueencode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -107,9 +109,14 @@ public class BaseOpMode extends LinearOpMode {
 	public double maxWristL = 0.75;  	//Point out
 	public double minWristL = 0.5; 	//Point down
 
-	public double ELBOW_SPEED = 0.15;//0.3;
-	public double maxElbow = 68;
-	public double minElbow = 0.0;
+	// 
+	public double ELBOW_SPEED = 0.1;
+	public double maxElbow = 30;
+	public double minElbow = -30;
+	
+	public double ROTATE_SPEED = 0.2;
+	public double minRotate = 0.25;
+	public double maxRotate = 0.75;
 
 	public static boolean encodersNeedInitializing = true;
 
@@ -261,6 +268,15 @@ NEW VERSION BELOW
 		int newFrontRightTarget = 0;
 		int newBackLeftTarget = 0;
 		int newBackRightTarget = 0;
+		
+		double maxDistance = Math.max(Math.abs(frontLeftInches), Math.abs(frontRightInches));
+		maxDistance = Math.max(maxDistance, Math.abs(backLeftInches));
+		maxDistance = Math.max(maxDistance, Math.abs(backRightInches));
+		
+		double frSpeed = Math.abs(speed) * Math.abs(frontRightInches) / maxDistance;
+		double flSpeed = Math.abs(speed) * Math.abs(frontLeftInches) / maxDistance;
+		double brSpeed = Math.abs(speed) * Math.abs(backRightInches) / maxDistance;
+		double blSpeed = Math.abs(speed) * Math.abs(backLeftInches) / maxDistance;
 
 		// Ensure that the OpMode is still active
 		if (opModeIsActive()) {
@@ -275,28 +291,28 @@ NEW VERSION BELOW
 				newFrontLeftTarget = (int)(frontLeftInches * COUNTS_PER_INCH);
 				frontLeft.setTargetPosition(newFrontLeftTarget);
 				frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-				frontLeft.setPower(Math.abs(speed));
+				frontLeft.setPower(flSpeed);
 			}
 
 			if (frontRightInches != 0) {
 				newFrontRightTarget = (int)(frontRightInches * COUNTS_PER_INCH);
 				frontRight.setTargetPosition(newFrontRightTarget);
 				frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-				frontRight.setPower(Math.abs(speed));
+				frontRight.setPower(frSpeed);
 			}
 
 			if (backLeftInches != 0) {
 				newBackLeftTarget = (int)(backLeftInches * COUNTS_PER_INCH);
 				backLeft.setTargetPosition(newBackLeftTarget);
 				backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-				backLeft.setPower(Math.abs(speed));
+				backLeft.setPower(blSpeed);
 			}
 
 			if (backRightInches != 0) {
 				newBackRightTarget = (int)(backRightInches * COUNTS_PER_INCH);
 				backRight.setTargetPosition(newBackRightTarget);
 				backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-				backRight.setPower(Math.abs(speed));
+				backRight.setPower(brSpeed);
 			}
 
 			// Add telemetry for debugging
@@ -306,11 +322,11 @@ NEW VERSION BELOW
 
 			// Keep looping while we are still active and at least one motor is running
 			while (opModeIsActive() &&
-					(frontLeftInches != 0 && frontLeft.isBusy() &&
-							frontRightInches != 0 && frontRight.isBusy() &&
-							backLeftInches != 0 && backLeft.isBusy() &&
-							backRightInches != 0 && backRight.isBusy())) {
-
+					(frontLeftInches == 0 || frontLeft.isBusy()) &&
+							(frontRightInches == 0 || frontRight.isBusy()) &&
+							(backLeftInches == 0 || backLeft.isBusy()) &&
+							(backRightInches == 0 || backRight.isBusy()) ) 
+			{
 				// Display current positions
 				telemetry.addData("Current FL:FR:BL:BR", "%7d:%7d:%7d:%7d",
 						frontLeft.getCurrentPosition(), frontRight.getCurrentPosition(),
@@ -364,15 +380,17 @@ NEW VERSION BELOW
 	}
 
 	public void driveForwardDiagonalRight(double inches, double speed){
-		encoderDrive (speed, inches, 0,
-				0, inches);
+		encoderDrive (speed, inches, 0, 0, inches);
 	}
+	
 	public void driveForwardDiagonalRight(double inches){
 		driveForwardDiagonalRight(inches, DRIVE_SPEED);
+
 	}
 
 	public void driveForwardDiagonalLeft(double inches, double speed){
 		encoderDrive (speed, 0, inches, inches, 0);
+		
 	}
 
 	public void driveForwardDiagonalLeft(double inches){
@@ -389,11 +407,53 @@ NEW VERSION BELOW
 
 		while (opModeIsActive() &&
 				armExtend.isBusy())
- //add 
+
 
 		{
 			telemetry.addData("Running to", targetPosition);
 			telemetry.addData("Currently at", armExtend.getCurrentPosition());
+			telemetry.update();
+		}
+ //
+
+
+		//Stop all motors
+		armExtend.setPower(0);
+
+		//Turn off RUN_AT_POSITION
+		armExtend.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+	}
+	
+	public void armLiftAndExtend(int liftTarget, int extendTarget, int elbowTarget, int wristTarget, int extendStartsAt)
+	{
+		armLift.setTargetPosition(liftTarget);
+		armExtend.setTargetPosition(extendTarget);
+		elbow.setTargetPosition(elbowTarget);
+
+		armLift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		armExtend.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+		armLift.setPower(shoulderSpeed);
+
+		while (opModeIsActive() 
+			&& armLift.isBusy() 
+			&& armLift.getCurrentPosition() < extendStartsAt)
+		{
+			telemetry.addData("Running to", liftTarget);
+			telemetry.addData("Currently at", armLift.getCurrentPosition());
+			telemetry.update();
+		}
+		
+		armExtend.setPower(armSpeed);
+		elbow.setPower(ELBOW_SPEED);
+		
+		while (opModeIsActive() 
+			&& armLift.isBusy() 
+			)
+		{
+			telemetry.addData("Running to", liftTarget);
+			telemetry.addData("Currently at", armLift.getCurrentPosition());
 			telemetry.update();
 		}
  //
